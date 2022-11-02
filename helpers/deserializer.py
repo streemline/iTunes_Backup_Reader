@@ -94,9 +94,8 @@ def getRootElementNames(f):
     roots = []
     try:
         plist = biplist.readPlist(f)
-        top_element = plist.get('$top', None)
-        if top_element:
-            roots = [ x for x in top_element.keys() ]
+        if top_element := plist.get('$top', None):
+            roots = list(top_element.keys())
         else:
             print('$top element not found! Not an NSKeyedArchive?')
     except Exception as ex:
@@ -109,7 +108,7 @@ def process_nsa_plist(input_path, f):
     global use_as_library
     try:
         if not use_as_library:
-            print('Reading file .. ' + input_path)
+            print(f'Reading file .. {input_path}')
         ccl_bplist.set_object_converter(ccl_bplist.NSKeyedArchiver_common_objects_convertor)
         plist = ccl_bplist.load(f)
         ns_keyed_archiver_obj = ccl_bplist.deserialise_NsKeyedArchiver(plist, parse_whole_structure=True)
@@ -120,7 +119,7 @@ def process_nsa_plist(input_path, f):
         for root_name in root_names:
             root = ns_keyed_archiver_obj[root_name]
             if not use_as_library:
-                print('Trying to deserialize binary plist $top = {}'.format(root_name))
+                print(f'Trying to deserialize binary plist $top = {root_name}')
             if isinstance(root, dict):
                 plist = {}
                 recurseCreatePlist(plist, root, ns_keyed_archiver_obj.object_table)
@@ -133,7 +132,7 @@ def process_nsa_plist(input_path, f):
                     plist = { root_name : plist }
             else:
                 plist = { root_name : root }
-            
+
             if len(root_names) == 1:
                 top_level = plist
             else: # > 1
@@ -161,7 +160,7 @@ def main():
         print('ERROR-This will not work with python2. Please run again with python3!')
         return
     argc = len(sys.argv)
-    
+
     if argc < 2 or sys.argv[1].lower() == '-h':
         print(usage)
         return
@@ -174,16 +173,15 @@ def main():
 
     # All OK, process the file now
     try:
-        f = open(input_path, 'rb')
-        deserialised_plist = process_nsa_plist(input_path, f)
-        output_path = input_path + '_deserialized.plist'
-        print('Writing out .. ' + output_path)
-        biplist.writePlist(deserialised_plist, output_path)
-        f.close()
+        with open(input_path, 'rb') as f:
+            deserialised_plist = process_nsa_plist(input_path, f)
+            output_path = f'{input_path}_deserialized.plist'
+            print(f'Writing out .. {output_path}')
+            biplist.writePlist(deserialised_plist, output_path)
     except Exception as ex:
         print('Had an exception (error)')
         traceback.print_exc()
-    
+
     print('Done !')
 
 if __name__ == "__main__":

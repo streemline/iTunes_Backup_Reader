@@ -40,21 +40,22 @@ def mbdbParser(manifest_mbdb_path, input_dir, output_dir, logger):
         '''Create domain path if it doesnt exist'''
         domain = (record.Domain.String).decode("utf-8")
         domain_path = os.path.join(output_dir + "\\" + str(domain))
-        if os.path.isdir(domain_path):
-            pass
-        else:
+        if not os.path.isdir(domain_path):
             try:
-                logger.debug("Trying to create directory: " + domain_path)
+                logger.debug(f"Trying to create directory: {domain_path}")
                 os.makedirs(domain_path)
                 logger.debug("Successfully created path")
             except Exception as ex:
-                logger.exception("Could not create directory: " + domain_path + " Exception was: " + str(ex))
+                logger.exception(
+                    f"Could not create directory: {domain_path} Exception was: {str(ex)}"
+                )
 
-        path = (record.Path.String).decode("utf-8")
-        domain_hash = domain.encode()
-        path_hash = path.encode()
+
         if record.Size != 0:
 
+            path = (record.Path.String).decode("utf-8")
+            domain_hash = domain.encode()
+            path_hash = path.encode()
             fileid = hashlib.sha1( domain_hash + b'-' + path_hash)
             fileid_hash = fileid.hexdigest()
             file_path = os.path.join(input_dir, fileid_hash)
@@ -66,10 +67,8 @@ def mbdbParser(manifest_mbdb_path, input_dir, output_dir, logger):
                 reversed_dest_path = dest_path[::-1]
                 dest_path_root_reversed = reversed_dest_path.split('\\', 1)[-1]
                 dest_path_root = dest_path_root_reversed[::-1]
-                if os.path.isdir(dest_path_root):
-                    copyfile(file_path, dest_path)
-                else:
+                if not os.path.isdir(dest_path_root):
                     os.makedirs(dest_path_root)
-                    copyfile(file_path, dest_path)
+                copyfile(file_path, dest_path)
 
 

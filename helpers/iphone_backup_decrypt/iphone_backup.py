@@ -52,7 +52,10 @@ class EncryptedBackup:
 
 
         self._decrypted_manifest_db_path = os.path.join(self._output, 'Decrypted_Manifest.db')
-        self.log.debug("Set the output of the decrypted Manifest.db to: " + str(self._decrypted_manifest_db_path))
+        self.log.debug(
+            f"Set the output of the decrypted Manifest.db to: {str(self._decrypted_manifest_db_path)}"
+        )
+
         # We can keep a connection to the index SQLite database open:
         self._temp_manifest_db_conn = None
 

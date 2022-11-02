@@ -14,52 +14,53 @@ import csv
 def OpenDb(inputPath, logger):
     try:
         conn = sqlite3.connect(inputPath)
-        logger.debug ("Opened database: " + inputPath + " successfully")
+        logger.debug(f"Opened database: {inputPath} successfully")
         return conn
     except Exception as ex:
-        logger.exception ("Failed to open database: " + inputPath + " Exception was: " + str(ex))
+        logger.exception(
+            f"Failed to open database: {inputPath} Exception was: {str(ex)}"
+        )
+
     return None
 
 '''Write to a plain ole txt file'''
 def writeToTxt(backup_list, application_list, output_file, logger):
-    output = open(output_file, "w+")
+    with open(output_file, "w+") as output:
+        output.write("DEVICE BACKUP INFO\n" +
+                     "Device Name: \t" + backup_list[0] + "\n" +
+                     "Product Name: \t" + backup_list[1] + "\n" +
+                     "Product Model: \t" + backup_list[2] + "\n" +
+                     "Phone Number: \t" + backup_list[3] + "\n" +
+                     "iOS Version: \t" + backup_list[4]+ "\n" +
+                     "Backup Completetion: \t" + str(backup_list[5]) + "\n" +
+                     "Backup Complete Write: \t" + str(backup_list[6]) + "\n" +
+                     "Users & Computers Connected to: \t\n" + backup_list[7] + "\n" +
+                     "Is Passcode Set: \t" + str(backup_list[8]) + "\n" +
+                     "Is Encrypted: \t" + str(backup_list[9]) + "\n" +
+                     "GUID: \t" + backup_list[10] + "\n" +
+                     "ICCID: \t" + backup_list[11] + "\n" +
+                     "IMEI: \t" + backup_list[12] + "\n" +
+                     "MEID: \t" + backup_list[13] + "\n" +
+                     "Serial Number: \t" + backup_list[14] + "\n" +
+                     "Is Full Backup: \t" + str(backup_list[15]) + "\n" +
+                     "Version: \t" + backup_list[16] + "\n" +
+                     "iTunes Version: \t" + backup_list[17] +  "\n\n")
 
-    output.write("DEVICE BACKUP INFO\n" +
-                 "Device Name: \t" + backup_list[0] + "\n" +
-                 "Product Name: \t" + backup_list[1] + "\n" +
-                 "Product Model: \t" + backup_list[2] + "\n" +
-                 "Phone Number: \t" + backup_list[3] + "\n" +
-                 "iOS Version: \t" + backup_list[4]+ "\n" +
-                 "Backup Completetion: \t" + str(backup_list[5]) + "\n" +
-                 "Backup Complete Write: \t" + str(backup_list[6]) + "\n" +
-                 "Users & Computers Connected to: \t\n" + backup_list[7] + "\n" +
-                 "Is Passcode Set: \t" + str(backup_list[8]) + "\n" +
-                 "Is Encrypted: \t" + str(backup_list[9]) + "\n" +
-                 "GUID: \t" + backup_list[10] + "\n" +
-                 "ICCID: \t" + backup_list[11] + "\n" +
-                 "IMEI: \t" + backup_list[12] + "\n" +
-                 "MEID: \t" + backup_list[13] + "\n" +
-                 "Serial Number: \t" + backup_list[14] + "\n" +
-                 "Is Full Backup: \t" + str(backup_list[15]) + "\n" +
-                 "Version: \t" + backup_list[16] + "\n" +
-                 "iTunes Version: \t" + backup_list[17] +  "\n\n")
-
-    output.write("\nAPPLICATIONS INSTALLED\n")
-    for app in application_list:
-        output.write("App Name: \t" + app[2] + "\n" +
-                     "Device Installed on: \t" + app[0] + "\n" +
-                     "Purchase Date: \t" + str(app[5]) + "\n" +
-                     "Apple ID: \t" + app[3] + "\n" +
-                     "Apple ID Name: \t" + app[4] + "\n" +
-                     "Device Installed on Serial Number: \t" + app[1] + "\n" +
-                     "Is Possibly Sideloaded: \t" + str(app[6]) + "\n" +
-                     "App Version: \t" + app[7] + "\n" +
-                     "Is Auto Downloaded: \t" + str(app[8]) + "\n" +
-                     "Is Purchased Redownloaded: \t" + str(app[9]) + "\n" +
-                     "Publisher: \t" + app[10] + "\n" +
-                     "Full App Name: \t" + app[11] + "\n\n"
-                     )
-    output.close()
+        output.write("\nAPPLICATIONS INSTALLED\n")
+        for app in application_list:
+            output.write("App Name: \t" + app[2] + "\n" +
+                         "Device Installed on: \t" + app[0] + "\n" +
+                         "Purchase Date: \t" + str(app[5]) + "\n" +
+                         "Apple ID: \t" + app[3] + "\n" +
+                         "Apple ID Name: \t" + app[4] + "\n" +
+                         "Device Installed on Serial Number: \t" + app[1] + "\n" +
+                         "Is Possibly Sideloaded: \t" + str(app[6]) + "\n" +
+                         "App Version: \t" + app[7] + "\n" +
+                         "Is Auto Downloaded: \t" + str(app[8]) + "\n" +
+                         "Is Purchased Redownloaded: \t" + str(app[9]) + "\n" +
+                         "Publisher: \t" + app[10] + "\n" +
+                         "Full App Name: \t" + app[11] + "\n\n"
+                         )
 
 '''Write to an SQLite database'''
 def writeToDb(backup_list, application_list, output_file, logger):
@@ -79,7 +80,12 @@ def writeToDb(backup_list, application_list, output_file, logger):
     try:
         c.execute(createBackQuery)
     except Exception as ex:
-        logger.exception("Failed to execute query: " + createBackQuery + "\nException was: " + str(ex))
+        logger.exception(
+            f"Failed to execute query: {createBackQuery}"
+            + "\nException was: "
+            + str(ex)
+        )
+
 
     try:
         '''Inserts for device data'''
@@ -89,7 +95,7 @@ def writeToDb(backup_list, application_list, output_file, logger):
                 GUID, ICCID, IMEI, MEID, Serial_Num,
                 Full_Backup, Version, iTunes_Version) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', (backup_list,))
     except Exception as ex:
-        logger.exception("Error filling Backups table. Error was: " + str(ex))
+        logger.exception(f"Error filling Backups table. Error was: {str(ex)}")
 
     '''Creates database table for installed apps'''
     createAppQuery = "CREATE TABLE Applications (Device_Name TEXT, Device_SN TEXT, App_Name TEXT, AppleID TEXT, " \
@@ -99,7 +105,12 @@ def writeToDb(backup_list, application_list, output_file, logger):
     try:
         c.execute(createAppQuery)
     except Exception as ex:
-        logger.exception("Failed to execute query: " + createAppQuery + "\nException was: " + str(ex))
+        logger.exception(
+            f"Failed to execute query: {createAppQuery}"
+            + "\nException was: "
+            + str(ex)
+        )
+
 
     try:
         conn.executemany('''INSERT INTO Applications(Device_Name, Device_SN, App_Name, AppleID, 
@@ -108,7 +119,7 @@ def writeToDb(backup_list, application_list, output_file, logger):
                          (application_list),)
 
     except Exception as ex:
-        logger.exception("Error filling Applications table. Error was: " + str(ex))
+        logger.exception(f"Error filling Applications table. Error was: {str(ex)}")
 
 
     '''Closes iTunes_Backups.db'''
@@ -118,8 +129,8 @@ def writeToDb(backup_list, application_list, output_file, logger):
 '''Write to 2 different CSV files for applications and backup metadata'''
 def writeToCsv(backup_list, application_list, output_file, logger):
 
-    backup_csv = output_file + "Backups.csv"
-    app_csv = output_file + "Applications.csv"
+    backup_csv = f"{output_file}Backups.csv"
+    app_csv = f"{output_file}Applications.csv"
 
 
     with open(backup_csv, 'w', newline='') as backup_csv_handle:
@@ -145,34 +156,40 @@ def startWrite(backup_list, application_list, output_dir, out_type, logger):
 
     '''Write to TXT'''
     if out_type == "txt":
-        text_file = "Device_" +  backup_list[14] + "_Output.txt"
+        text_file = f"Device_{backup_list[14]}_Output.txt"
         output_file = os.path.join(output_dir, text_file)
-        logger.debug("Starting output to " + output_file)
+        logger.debug(f"Starting output to {output_file}")
         try:
             writeToTxt(backup_list, application_list, output_file, logger)
-            logger.debug("Finished output to " + output_file)
+            logger.debug(f"Finished output to {output_file}")
         except Exception as ex:
-            logger.exception("Could not write output to " + output_file + " Exception was: " + str(ex))
+            logger.exception(
+                f"Could not write output to {output_file} Exception was: {str(ex)}"
+            )
+
 
     '''Write to DB'''
     if out_type == "db":
-        text_file = "Device_" + backup_list[14] + "_Output.db"
+        text_file = f"Device_{backup_list[14]}_Output.db"
         output_file = os.path.join(output_dir, text_file)
-        logger.debug("Starting output to " + output_file)
+        logger.debug(f"Starting output to {output_file}")
         try:
             writeToDb(backup_list, application_list, output_file, logger)
-            logger.debug("Finished output to " + output_file)
+            logger.debug(f"Finished output to {output_file}")
         except Exception as ex:
-            logger.exception("Could not write output to " + output_file + " Exception was: " + str(ex))
+            logger.exception(
+                f"Could not write output to {output_file} Exception was: {str(ex)}"
+            )
+
 
     '''Write to CSV'''
     if out_type == "csv":
         logger.debug("Starting  output")
-        text_file = "Device_" + backup_list[14] + "_Output_"
+        text_file = f"Device_{backup_list[14]}_Output_"
         output_file = os.path.join(output_dir, text_file)
         try:
             writeToCsv(backup_list, application_list, output_file, logger)
-            logger.debug("Finished output to " + output_file)
+            logger.debug(f"Finished output to {output_file}")
         except Exception as ex:
-            logger.exception("Could not write CSV output. Exception was: " + str(ex))
+            logger.exception(f"Could not write CSV output. Exception was: {str(ex)}")
 

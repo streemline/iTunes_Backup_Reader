@@ -23,10 +23,8 @@ from construct import *
 def frpdHelper(data, logger):
 
     '''Array to store usernames and computers'''
-    userComps = ""
-
     '''Creates bytearrays for finding magic key and full name'''
-    logger.debug("Data being interpreted for FRPD is of type: " + str(type(data)))
+    logger.debug(f"Data being interpreted for FRPD is of type: {str(type(data))}")
     x = type(data)
     byteArr = bytearray(data)
     userByteArr = bytearray()
@@ -40,21 +38,21 @@ def frpdHelper(data, logger):
     if magic == b'\x01\x01\x80\x00\x00':
         logger.debug("Found magic bytes in iTunes Prefs FRPD... Finding Usernames and Desktop names now")
         '''93 is the offset after the magic that we see user names'''
+        userComps = ""
+
         for x in range (int(magicOffset + 92), len(data)):
             if (data[x]) == 0:
                 '''157 is the offset after the magic where the computer name is found'''
                 x = int(magicOffset) + 157
                 if userByteArr.decode() == "":
                     continue
+                if flag == 0:
+                    userComps += f"{userByteArr.decode()} - "
+                    flag = 1
                 else:
-                    if flag == 0:
-                        userComps += userByteArr.decode() + " - "
-                        flag = 1
-                    else:
-                        userComps += userByteArr.decode() + "\n"
-                        flag = 0
-                    userByteArr = bytearray()
-                    continue
+                    userComps += userByteArr.decode() + "\n"
+                    flag = 0
+                userByteArr = bytearray()
             else:
                 char =  (data[x])
                 userByteArr.append(char)
@@ -67,26 +65,24 @@ def sinfHelper(data, logger):
 
     '''Creates bytearrays for finding magic key and full name'''
     byteArr = bytearray(data)
-    userByteArr = bytearray()
-
     '''Looks for magic keyword of name'''
     magicOffset = byteArr.find(b"name")
     magic= byteArr[magicOffset:magicOffset+4]
-    if magic == b"name":
-        '''Finds characters until null terminator, appends to userByteArr'''
-        logger.debug("Found magic name in SINF")
-        for x in range (int(magicOffset+4), len(data)):
-            if (data[x]) == 0:
-                break
-            else:
-                char =  (data[x])
-                userByteArr.append(char)
-
-        userName = userByteArr.decode()
-        logger.debug("Found user's name from SINF: " + userName)
-        return userName
-    else:
+    if magic != b"name":
         return ""
+    '''Finds characters until null terminator, appends to userByteArr'''
+    logger.debug("Found magic name in SINF")
+    userByteArr = bytearray()
+
+    for x in range (int(magicOffset+4), len(data)):
+        if (data[x]) == 0:
+            break
+        char =  (data[x])
+        userByteArr.append(char)
+
+    userName = userByteArr.decode()
+    logger.debug("Found user's name from SINF: " + userName)
+    return userName
 
 
 
