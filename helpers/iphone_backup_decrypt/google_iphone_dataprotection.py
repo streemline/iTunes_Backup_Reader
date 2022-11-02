@@ -83,10 +83,10 @@ class Keybag:
             if b"WPKY" not in classkey:
                 continue
             if classkey[b"WRAP"] & _WRAP_PASSPHRASE:
-                k = _AESUnwrap(passphrase_key, classkey[b"WPKY"])
-                if not k:
+                if k := _AESUnwrap(passphrase_key, classkey[b"WPKY"]):
+                    classkey[b"KEY"] = k
+                else:
                     return False
-                classkey[b"KEY"] = k
         return True
 
     def unwrapKeyForClass(self, protection_class, persistent_key):
@@ -99,7 +99,7 @@ class Keybag:
         print("== Keybag")
         print("Keybag type: %s keybag (%d)" % (_KEYBAG_TYPES[self.type], self.type))
         print("Keybag version: %d" % self.attrs[b"VERS"])
-        print("Keybag UUID: %s" % hexlify(self.uuid))
+        print(f"Keybag UUID: {hexlify(self.uuid)}")
         print("-"*209)
         print("".join(["Class".ljust(53),
                        "WRAP".ljust(5),
@@ -141,9 +141,7 @@ def _pack64bit(s):
 
 
 def _AESUnwrap(kek, wrapped):
-    C = []
-    for i in range(len(wrapped)//8):
-        C.append(_unpack64bit(wrapped[i * 8:i * 8 + 8]))
+    C = [_unpack64bit(wrapped[i * 8:i * 8 + 8]) for i in range(len(wrapped)//8)]
     n = len(C) - 1
     R = [0] * (n+1)
     A = C[0]
@@ -151,7 +149,7 @@ def _AESUnwrap(kek, wrapped):
     for i in range(1, n+1):
         R[i] = C[i]
 
-    for j in reversed(range(0, 6)):
+    for j in reversed(range(6)):
         for i in reversed(range(1, n+1)):
             todec = _pack64bit(A ^ (n * j + i))
             todec += _pack64bit(R[i])
@@ -159,16 +157,13 @@ def _AESUnwrap(kek, wrapped):
             A = _unpack64bit(B[:8])
             R[i] = _unpack64bit(B[8:])
 
-    if A != 0xa6a6a6a6a6a6a6a6:
-        return None
-    res = b"".join(map(_pack64bit, R[1:]))
-    return res
+    return None if A != 0xa6a6a6a6a6a6a6a6 else b"".join(map(_pack64bit, R[1:]))
 
 
 def AESdecryptCBC(data, key, iv=b"\x00" * 16):
     if len(data) % 16:
         print("WARN: AESdecryptCBC: data length not /16, truncating")
-        data = data[0:(len(data)/16) * 16]
+        data = data[:(len(data)/16) * 16]
     data = Crypto.Cipher.AES.new(key, Crypto.Cipher.AES.MODE_CBC, iv).decrypt(data)
     return data
 

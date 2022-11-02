@@ -48,13 +48,16 @@ def startRecreate(input_dir, output_dir, password, logger):
     info_plist_path = os.path.join(input_dir, "Info.plist")
     info_plist = readPlist(info_plist_path)
     serial_number = info_plist.get('Serial Number', '')
-    output_dir = os.path.join(output_dir, "Device_" + serial_number + "_Folders")
+    output_dir = os.path.join(output_dir, f"Device_{serial_number}_Folders")
     try:
-        logger.debug("Trying to create directory: " + output_dir)
+        logger.debug(f"Trying to create directory: {output_dir}")
         os.makedirs(output_dir)
-        logger.debug("Successfully created directory: " + output_dir)
+        logger.debug(f"Successfully created directory: {output_dir}")
     except Exception as ex:
-        logger.exception("Could not create directory: " + output_dir + " Exception was: " + str(ex))
+        logger.exception(
+            f"Could not create directory: {output_dir} Exception was: {str(ex)}"
+        )
+
         sys.exit()
 
 

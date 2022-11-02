@@ -21,7 +21,7 @@ def checkPaths(status_plist_path, manifest_plist_path, info_plist_path, logger, 
     if os.path.isfile(status_plist_path):
         logger.debug("Found Status.plist")
     else:
-        logger.warning("Status.plist not found in: " + input_dir)
+        logger.warning(f"Status.plist not found in: {input_dir}")
         logger.warning("The Status.plist isn't required, but you will have a loss of data")
         status_plist_path = None
 
@@ -29,14 +29,14 @@ def checkPaths(status_plist_path, manifest_plist_path, info_plist_path, logger, 
     if os.path.isfile(manifest_plist_path):
         logger.debug("Found Manifest.plist")
     else:
-        logger.error("Manifest.plist not found in: " + input_dir + "... Exiting")
+        logger.error(f"Manifest.plist not found in: {input_dir}... Exiting")
         sys.exit()
 
     '''Check existance of Info.plist'''
     if os.path.isfile(info_plist_path):
         logger.debug("Found Info.plist")
     else:
-        logger.error("Info.plist not found in: " + input_dir + "... Exiting")
+        logger.error(f"Info.plist not found in: {input_dir}... Exiting")
         sys.exit()
 
 def readApps(apps, info_plist, logger):
@@ -87,9 +87,7 @@ def readApps(apps, info_plist, logger):
 def backupReader(info_plist, manifest_plist, status_plist, logger):
 
     iTunesPrefsPlist = info_plist.get('iTunes Files', {})
-    binaryFrpd = iTunesPrefsPlist.get('iTunesPrefs', '')
-
-    if binaryFrpd:
+    if binaryFrpd := iTunesPrefsPlist.get('iTunesPrefs', ''):
         user_comps = frpdHelper(binaryFrpd, logger)
     else:
         user_comps = ""
@@ -131,19 +129,18 @@ def backupReader(info_plist, manifest_plist, status_plist, logger):
 def readPlists(status_plist_path, manifest_plist_path, info_plist_path, logger, output_dir):
 
 
-    if not os.path.exists(status_plist_path):
-        status_plist = None
-    else:
+    status_plist = (
+        readPlist(status_plist_path)
+        if os.path.exists(status_plist_path)
+        else None
+    )
 
-        status_plist = readPlist(status_plist_path)
     manifest_plist = readPlist(manifest_plist_path)
     info_plist = readPlist(info_plist_path)
 
 
 
     apps = []
-    not_detailed_app_dict = []
-
     allApps = info_plist.get('Applications', '')
     not_detailed_apps = manifest_plist.get('Applications', '')
 
@@ -152,16 +149,31 @@ def readPlists(status_plist_path, manifest_plist_path, info_plist_path, logger, 
         if app in not_detailed_apps:
             not_detailed_apps.pop(app)
 
-    for app in not_detailed_apps:
-        not_detailed_app_dict.append(tuple(("N/A", "N/A", not_detailed_apps[app]['CFBundleIdentifier'], "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A")))
+    not_detailed_app_dict = [
+        (
+            "N/A",
+            "N/A",
+            not_detailed_apps[app]['CFBundleIdentifier'],
+            "N/A",
+            "N/A",
+            "N/A",
+            "N/A",
+            "N/A",
+            "N/A",
+            "N/A",
+            "N/A",
+            "N/A",
+        )
+        for app in not_detailed_apps
+    ]
 
     if len(allApps) == 0:
         logger.debug("No applications found in the Info.plist. Detailed app data won't be available")
     else:
         apps = readApps(allApps, info_plist, logger)
 
-    
-    
+
+
 
 
 
